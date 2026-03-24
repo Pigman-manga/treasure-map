@@ -1,0 +1,30 @@
+{
+	"schemaVersion": 1,
+	"id": "treasuremap",
+	"version": "${version}",
+	"name": "TreasureMap",
+	"description": "This mod just allows you to create your own treasure maps",
+	"authors": [
+		"Apothem"
+	],
+	"contact": {
+		"sources": "https://gitlab.com/apothem/treasuremap"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/treasuremap/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"net.apothem.treasuremap.TreasureMap"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.16.5",
+		"minecraft": ">=1.21",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
