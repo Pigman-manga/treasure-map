@@ -14,7 +14,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.command.argument.Vec3ArgumentType;
-import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.MapDecorationsComponent;
 import net.minecraft.item.FilledMapItem;
@@ -54,16 +53,15 @@ public class TreasureMap implements ModInitializer {
 
 		Vec3d coords = Vec3ArgumentType.getVec3(context, "coords");
 
-		ItemStack map = FilledMapItem.createMap(player.getWorld(), (int)coords.x, (int)coords.z, (byte)1, true, true);
+		ItemStack map = FilledMapItem.createMap(source.getWorld(), (int)coords.x, (int)coords.z, (byte)1, true, true);
 		FilledMapItem.fillExplorationMap(source.getWorld(), map);
 
-		ComponentMap componentMap = map.getComponents();
-		MapDecorationsComponent mapDecorationsComponent = componentMap.get(DataComponentTypes.MAP_DECORATIONS);
+		MapDecorationsComponent mapDecorationsComponent = map.getOrDefault(DataComponentTypes.MAP_DECORATIONS, MapDecorationsComponent.DEFAULT);
 		mapDecorationsComponent = mapDecorationsComponent.with("red_x", new MapDecorationsComponent.Decoration(MapDecorationTypes.RED_X, coords.x,  coords.z, 0.f));
 		map.set(DataComponentTypes.MAP_DECORATIONS, mapDecorationsComponent);
 		map.set(DataComponentTypes.ITEM_NAME, Text.translatable("filled_map.buried_treasure"));
 
 		player.setStackInHand(Hand.MAIN_HAND, map);
-		return 0;
+		return 1;
 	}
 }
