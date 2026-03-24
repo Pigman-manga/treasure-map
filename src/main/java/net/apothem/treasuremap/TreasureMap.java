@@ -54,7 +54,7 @@ public class TreasureMap implements ModInitializer {
 
 		Vec3d coords = Vec3ArgumentType.getVec3(context, "coords");
 
-		ItemStack map = FilledMapItem.createMap(player.getWorld(), (int)coords.x, (int)coords.z, (byte)1, true, true);
+		ItemStack map = FilledMapItem.createMap(source.getWorld(), (int)coords.x, (int)coords.z, (byte)1, true, true);
 		FilledMapItem.fillExplorationMap(source.getWorld(), map);
 
 		ComponentMap componentMap = map.getComponents();
