@@ -4,23 +4,25 @@ import net.fabricmc.api.ModInitializer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.command.argument.Vec3ArgumentType;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.MapDecorationType;
 import net.minecraft.component.type.MapDecorationsComponent;
 import net.minecraft.item.FilledMapItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.map.MapDecorationTypes;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.text.Text;
+import net.minecraft.util.Hand;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -39,8 +41,10 @@ public class TreasureMap implements ModInitializer {
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			dispatcher.register(literal("CreateTreasureMap")
-				.then(argument("coords", Vec3ArgumentType.vec3())
-						.executes(this::createTreasureMap)));
+				.then(argument("x", IntegerArgumentType.integer())
+					.then(argument("z", IntegerArgumentType.integer())
+						.then(argument("icon", StringArgumentType.word())
+							.executes(this::createTreasureMap)))));
         });
 	}
 
@@ -52,18 +56,41 @@ public class TreasureMap implements ModInitializer {
 		if (!handItem.isOf(Items.MAP))
 			return 0;
 
-		Vec3d coords = Vec3ArgumentType.getVec3(context, "coords");
+		int x = IntegerArgumentType.getInteger(context, "x");
+		int z = IntegerArgumentType.getInteger(context, "z");
+		String iconId = StringArgumentType.getString(context, "icon");
+		RegistryEntry<MapDecorationType> decorationType = getDecorationType(iconId);
 
-		ItemStack map = FilledMapItem.createMap(player.getWorld(), (int)coords.x, (int)coords.z, (byte)1, true, true);
+		ItemStack map = FilledMapItem.createMap(player.getWorld(), x, z, (byte)1, true, true);
 		FilledMapItem.fillExplorationMap(source.getWorld(), map);
 
 		ComponentMap componentMap = map.getComponents();
 		MapDecorationsComponent mapDecorationsComponent = componentMap.get(DataComponentTypes.MAP_DECORATIONS);
-		mapDecorationsComponent = mapDecorationsComponent.with("red_x", new MapDecorationsComponent.Decoration(MapDecorationTypes.RED_X, coords.x,  coords.z, 0.f));
+		if (mapDecorationsComponent == null) {
+			mapDecorationsComponent = MapDecorationsComponent.DEFAULT;
+		}
+
+		mapDecorationsComponent = mapDecorationsComponent.with(
+			"custom_marker",
+			new MapDecorationsComponent.Decoration(decorationType, x, z, 0.f)
+		);
 		map.set(DataComponentTypes.MAP_DECORATIONS, mapDecorationsComponent);
 		map.set(DataComponentTypes.ITEM_NAME, Text.translatable("filled_map.buried_treasure"));
 
 		player.setStackInHand(Hand.MAIN_HAND, map);
 		return 0;
+	}
+
+	private RegistryEntry<MapDecorationType> getDecorationType(String iconId) {
+		return switch (iconId.toLowerCase()) {
+			case "mansion" -> MapDecorationTypes.MANSION;
+			case "monument" -> MapDecorationTypes.MONUMENT;
+			case "treasure", "red_x" -> MapDecorationTypes.RED_X;
+			case "red_marker" -> MapDecorationTypes.RED_MARKER;
+			case "white_banner", "banner_white" -> MapDecorationTypes.WHITE_BANNER;
+			case "igloo" -> MapDecorationTypes.IGLOO;
+			case "jungle_temple" -> MapDecorationTypes.JUNGLE_TEMPLE;
+			default -> MapDecorationTypes.RED_X;
+		};
 	}
 }
