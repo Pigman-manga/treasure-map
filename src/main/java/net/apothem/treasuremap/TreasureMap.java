@@ -3,6 +3,7 @@ package net.apothem.treasuremap;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 
 import com.mojang.brigadier.context.CommandContext;
 
@@ -53,9 +54,10 @@ public class TreasureMap implements ModInitializer {
 			return 0;
 
 		Vec3d coords = Vec3ArgumentType.getVec3(context, "coords");
+		ServerWorld world = player.getServerWorld();
 
-		ItemStack map = FilledMapItem.createMap(player.getWorld(), (int)coords.x, (int)coords.z, (byte)1, true, true);
-		FilledMapItem.fillExplorationMap(source.getWorld(), map);
+		ItemStack map = FilledMapItem.createMap(world, (int)coords.x, (int)coords.z, (byte)1, true, true);
+		FilledMapItem.fillExplorationMap(world, map);
 
 		ComponentMap componentMap = map.getComponents();
 		MapDecorationsComponent mapDecorationsComponent = componentMap.get(DataComponentTypes.MAP_DECORATIONS);
